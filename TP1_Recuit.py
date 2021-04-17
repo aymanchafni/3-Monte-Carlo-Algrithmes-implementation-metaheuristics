@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 #%%
 def bornes(x):
-    return np.asarray([[20,99],[1,90],[1,min(0.625*x[1]/0.00954, 0.625*x[0]/0.0193, 200)],[max(10,1296000/(np.pi*x[2]**2)-4/3*x[2]),240]])
+    return np.asarray([[1,99],[1,100],[1,min(0.625*x[1]/0.00954, 0.625*x[0]/0.0193, 200)],[max(10,1296000/(np.pi*x[2]**2)-4/3*x[2]),240]])
 #%%
 def cout_soudure(x):
     return 1.7781*0.625*x[1]*x[2]**2+ 0.6224*0.625*x[0]*x[2]*x[3] + 3.1661*(0.625*x[0])**2*x[3] + 19.84*(0.625*x[0])**2*x[2]
@@ -21,12 +21,13 @@ def contraintes(x):
 def initialiser_points():
     x = np.zeros(4)
     _bornes = bornes(x)
-    x[0]= np.random.uniform(high = _bornes[0,1])
-    x[1]= np.random.uniform(low =  _bornes[1,0], high =  _bornes[1,1])
-    _bornes = bornes(x)
-    x[2]= np.random.uniform(high =  _bornes[2,1])
-    _bornes = bornes(x)
-    x[3]= np.random.uniform(low =  _bornes[3,0], high =  _bornes[3,1])
+    while not contraintes(x):
+            x[0]= np.random.uniform(low =  _bornes[0,0],high = _bornes[0,1])
+            x[1]= np.random.uniform(low =  _bornes[1,0], high =  _bornes[1,1])
+            _bornes = bornes(x)
+            x[2]= np.random.uniform(low =  _bornes[2,0],high =  _bornes[2,1])
+            _bornes = bornes(x)
+            x[3]= np.random.uniform(low =  _bornes[3,0], high =  _bornes[3,1])
 
     return x
 
@@ -45,15 +46,18 @@ def mutation(candidat):
             i = np.random.randint(0,4)
             temp=candidat[i]
         
-        temp = candidat[i] + np.random.normal(0,1) * 0.1 * temp * (_bornes[i,1]- _bornes[i,0]) 
+        temp = candidat[i] + np.random.normal(0,1) * 0.01 * (_bornes[i,1] - _bornes[i,0]) 
         temp_array[i] = temp
+        
+       
 
-        if contraintes(temp_array):
+        if contraintes(temp_array): 
             candidat[i] = temp
             break
         
         cpt+=1
     return candidat
+
 
 #%%
 def calculer_temperature_expo(t, T_init,epsilon_t=0.025): #exponentiel

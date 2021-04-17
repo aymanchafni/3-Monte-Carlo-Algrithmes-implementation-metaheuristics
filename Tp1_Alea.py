@@ -1,9 +1,9 @@
 #%%
 import numpy as np
 import pandas as pd
-
+#%%
 def bornes(x):
-    return np.asarray([[0,99],[1,100],[1,min(0.625*x[1]/0.00954, 0.625*x[0]/0.0193, 200)],[max(10,1296000/(np.pi*x[2]**2)-4/3*x[2]),240]])
+    return np.asarray([[10,99],[10,100],[1,min(0.625*x[1]/0.00954, 0.625*x[0]/0.0193, 200)],[max(10,1296000/(np.pi*x[2]**2)-4/3*x[2]),240]])
 #%%
 def cout_soudure(x):
     return 1.7781*0.625*x[1]*x[2]**2+ 0.6224*0.625*x[0]*x[2]*x[3] + 3.1661*(0.625*x[0])**2*x[3] + 19.84*(0.625*x[0])**2*x[2]
@@ -14,16 +14,18 @@ def cout_soudure(x):
 def generer_points(n):
     x = np.zeros([n,4])
     for i in range(n):
-        _bornes = bornes(x[i])
-        x[i,0]= np.random.uniform(high = _bornes[0,1])
-        x[i,1]= np.random.uniform(low =  _bornes[1,0], high =  _bornes[1,1])
-        _bornes = bornes(x[i])
-        x[i,2]= np.random.uniform(high =  _bornes[2,1])
-        _bornes = bornes(x[i])
-        x[i,3]= np.random.uniform(low =  _bornes[3,0], high =  _bornes[3,1])
+            _bornes = bornes(x[i])
+            
+            while not contraintes(x[i]):
+                
+                    x[i,0]= np.random.uniform(low =  _bornes[0,0],high = _bornes[0,1])
+                    x[i,1]= np.random.uniform(low =  _bornes[1,0], high =  _bornes[1,1])
+                    _bornes = bornes(x[i])
+                    x[i,2]= np.random.uniform(low =  _bornes[2,0],high =  _bornes[2,1])
+                    _bornes = bornes(x[i])
+                    x[i,3]= np.random.uniform(low =  _bornes[3,0], high =  _bornes[3,1])
 
     return x
-   
 
 #%%
 def print_results(hist):
@@ -68,7 +70,6 @@ def aleatoire(n = 50, itrs=100,epsilon = 0.001, samples_size = 10 ,verbose = Fal
     while(i<n):
         i+=1
         k=0
-        l=0
         current_points = generer_points(samples_size)
         scores = np.apply_along_axis(cout_soudure, arr = current_points, axis = 1)
         score = np.min(scores)
@@ -92,19 +93,11 @@ def aleatoire(n = 50, itrs=100,epsilon = 0.001, samples_size = 10 ,verbose = Fal
                 best_point = current_point
           
 
-          if best_before_score - best_score < epsilon :
-                 l += 1 
-          else :
-                 l = 0
-
-          if l == 50 : 
-              break
-          
 
           if verbose :
                 print(f"itr : {k}, minimum : {current_point}, best score : {score}")
         
-        historique = np.append(historique,[np.append([i,best_score,k],[best_point])],axis=0)
+        historique = np.append(historique,[np.append([i,best_score,k],best_point)],axis=0)
     return historique
 #%%
 while True:
